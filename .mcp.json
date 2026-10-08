@@ -2,9 +2,9 @@
   "mcpServers": {
     "awslabs.terraform-mcp-server": {
       "type": "stdio",
-      "command": "uvx",
+      "command": "/home/esther/.local/bin/terraform-mcp-server",
       "args": [
-        "awslabs.terraform-mcp-server@latest"
+        "stdio"
       ],
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
@@ -24,7 +24,7 @@
       ],
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR",
-        "AWS_REGION": "eu-central-1"
+        "AWS_REGION": "us-east-1"
       }
     },
     "context7": {
@@ -32,7 +32,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "@upstash/context7-mcp"
+        "@upstash/context7-mcp@2.3.0"
       ]
     },
     "atlassian": {
