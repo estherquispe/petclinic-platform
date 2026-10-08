@@ -56,7 +56,7 @@ variable "node_instance_types" {
 variable "node_ami_type" {
   description = "AMI type for the managed node group (AL2023 ARM64 for Kubernetes 1.33+)."
   type        = string
-  default     = "AL2023_ARM_64"
+  default     = "AL2023_ARM_64_STANDARD"
 }
 
 variable "node_min_size" {

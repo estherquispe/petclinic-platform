@@ -106,7 +106,7 @@ resource "aws_route_table_association" "public" {
 # EKS cluster (control plane) security group.
 resource "aws_security_group" "eks_cluster" {
   name        = "${var.project}-${var.environment}-eks-cluster"
-  description = "EKS control plane — HTTPS (443) reachable from worker nodes only"
+  description = "EKS control plane - HTTPS (443) reachable from worker nodes only"
   vpc_id      = aws_vpc.main.id
 
   # API server egress: all traffic (technical-spec.md → Security Groups).
@@ -126,7 +126,7 @@ resource "aws_security_group" "eks_cluster" {
 # EKS worker node security group.
 resource "aws_security_group" "eks_node" {
   name        = "${var.project}-${var.environment}-eks-node"
-  description = "EKS worker nodes — traffic from control plane, peer nodes, and ALB only"
+  description = "EKS worker nodes - traffic from control plane, peer nodes, and ALB only"
   vpc_id      = aws_vpc.main.id
 
   # All outbound traffic (technical-spec.md → Security Groups).
@@ -146,7 +146,7 @@ resource "aws_security_group" "eks_node" {
 # RDS (MySQL) security group — 3306 from EKS nodes ONLY, never 0.0.0.0/0.
 resource "aws_security_group" "rds" {
   name        = "${var.project}-${var.environment}-rds"
-  description = "RDS MySQL — port 3306 reachable from EKS worker nodes only"
+  description = "RDS MySQL - port 3306 reachable from EKS worker nodes only"
   vpc_id      = aws_vpc.main.id
 
   # Default outbound; RDS does not initiate connections.
@@ -168,7 +168,7 @@ resource "aws_security_group" "rds" {
 # AWS default allow-all egress rule).
 resource "aws_security_group" "alb" {
   name        = "${var.project}-${var.environment}-alb"
-  description = "Public ALB — HTTP/HTTPS from internet, egress to worker nodes only"
+  description = "Public ALB - HTTP/HTTPS from internet, egress to worker nodes only"
   vpc_id      = aws_vpc.main.id
 
   ingress {
