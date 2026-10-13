@@ -58,7 +58,8 @@ petclinic-platform/
 │
 ├── scripts/                      # Operational scripts
 │   ├── bootstrap-state.sh        # Create S3 bucket + DynamoDB for TF state
-│   └── ecr-login.sh              # ECR authentication helper
+│   ├── ecr-login.sh              # ECR authentication helper
+│   └── build-push-images.sh      # Build 8 ARM64 images (buildx) + push to ECR
 │
 └── docs/                         # Operational Documentation
     ├── architecture.md           # Infrastructure architecture & diagrams
@@ -88,6 +89,32 @@ petclinic-platform/
 | CD | ArgoCD | GitOps — watches Git, auto-sync (dev), manual sync (prod) |
 | Packaging | Helm | Generic chart, per-service + per-env values |
 | Node Scaling | Karpenter | NodePools, EC2NodeClass, Spot diversification |
+
+## Build & Push Images (initial manual build)
+
+Before the first deployment, build all 8 images for **linux/arm64** (required for
+the t4g Graviton nodes) and push them to ECR. Maven builds the JARs only —
+image creation is done with `docker buildx`, **not** the Maven `buildDocker`
+profile (PETPLAT-85).
+
+```bash
+# One-shot: builds JARs → logs into ECR → builds ARM64 images → pushes → verifies
+./scripts/build-push-images.sh                      # petclinic-dev, tag v1.0.0
+./scripts/build-push-images.sh --tag a1b2c3d        # short commit SHA tag
+
+# Equivalent manual commands
+cd ../spring-petclinic-microservices && ./mvnw clean package -DskipTests   # JARs only
+./scripts/ecr-login.sh --region us-east-1                                  # ECR auth
+docker buildx build --platform linux/arm64 \
+  --build-arg ARTIFACT_NAME=spring-petclinic-config-server-<version> \
+  --build-arg EXPOSED_PORT=8888 \
+  -f ../spring-petclinic-microservices/docker/Dockerfile \
+  -t {account}.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/config-server:v1.0.0 \
+  --push ../spring-petclinic-microservices/spring-petclinic-config-server/target
+```
+
+Image URIs follow `{account}.dkr.ecr.us-east-1.amazonaws.com/petclinic-{env}/{service}:{tag}`.
+Never use the `latest` tag — use `v1.0.0` for initial pushes or the 7-char commit SHA in CI.
 
 ## Environments
 

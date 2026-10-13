@@ -98,3 +98,22 @@ output "kubeconfig_update_command" {
   description = "Run this command to configure kubectl for the cluster (PETPLAT-14)."
   value       = "aws eks update-kubeconfig --name ${module.eks.cluster_name} --region ${var.aws_region}"
 }
+
+# ECR outputs (PETPLAT-18/20) — consumed by CI (image push targets) and K8s
+# manifests (image references).
+
+output "ecr_repository_urls" {
+  description = "Map of service_name → dev ECR repository URL."
+  value       = module.ecr.repository_urls
+}
+
+output "ecr_repository_arns" {
+  description = "Map of service_name → dev ECR repository ARN."
+  value       = module.ecr.repository_arns
+}
+
+output "ecr_image_tag_mutability" {
+  description = "Effective tag mutability of the dev ECR repositories (MUTABLE for dev)."
+  value       = module.ecr.image_tag_mutability
+}
+

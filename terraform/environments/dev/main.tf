@@ -48,3 +48,31 @@ module "eks" {
   # (set api_server_public_access_cidrs in terraform.tfvars).
   api_server_public_access_cidrs = var.api_server_public_access_cidrs
 }
+
+# ECR: one private repository per service under petclinic-dev/, with
+# scan-on-push, lifecycle policies, and MUTABLE tags for dev (PETPLAT-18/19/20).
+# technical-spec.md → ECR Container Registry.
+module "ecr" {
+  source = "../../modules/ecr"
+
+  project     = var.project
+  environment = var.environment
+
+  service_names = [
+    "config-server",
+    "discovery-server",
+    "api-gateway",
+    "customers-service",
+    "visits-service",
+    "vets-service",
+    "genai-service",
+    "admin-server",
+  ]
+
+  # image_tag_mutability is left unset: the module derives MUTABLE for dev
+  # (allows re-pushing the same tag during development) and IMMUTABLE for prod.
+  # force_delete lets `terraform destroy` remove dev repos that still contain
+  # images (students destroy after each session — technical-spec.md cost note).
+  force_delete = true
+}
+
