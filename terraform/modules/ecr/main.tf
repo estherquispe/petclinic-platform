@@ -31,17 +31,21 @@ locals {
 
   # Lifecycle policy (PETPLAT-19, technical-spec.md → Lifecycle Policies):
   # keep the 10 most recent TAGGED images and expire untagged images after
-  # 7 days (604800s) to keep ECR storage at ~$1/month. The untagged rule runs
+  # 7 days to keep ECR storage at ~$1/month. The untagged rule runs
   # first (priority 1) so stale layers are always reclaimed on schedule and can
   # never crowd tagged releases out of the count-based rule (review fix).
+  # Note: ECR's schema has no "olderThanSeconds" field — age-based expiry uses
+  # countType=sinceImagePushed with countUnit=days.
   lifecycle_policy = jsonencode({
     rules = [
       {
         rulePriority = 1
         description  = "Expire untagged images after 7 days"
         selection = {
-          tagStatus        = "untagged"
-          olderThanSeconds = 604800
+          tagStatus   = "untagged"
+          countType   = "sinceImagePushed"
+          countUnit   = "days"
+          countNumber = 7
         }
         action = {
           type = "expire"
