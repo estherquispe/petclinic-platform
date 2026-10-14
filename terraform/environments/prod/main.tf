@@ -50,3 +50,30 @@ module "eks" {
   # (set api_server_public_access_cidrs in terraform.tfvars).
   api_server_public_access_cidrs = var.api_server_public_access_cidrs
 }
+
+# RDS: shared MySQL 8.0 instance (petclinic-prod-mysql) for customers/visits/
+# vets, plus the master-credentials secret in Secrets Manager
+# (PETPLAT-22/23/27). technical-spec.md → RDS Database (prod column).
+module "rds" {
+  source = "../../modules/rds"
+
+  project     = var.project
+  environment = var.environment
+
+  # Network from the VPC module (PETPLAT-10): subnets for the DB subnet group
+  # and the RDS SG that admits 3306 from the EKS node SG only.
+  subnet_ids        = module.vpc.public_subnet_ids
+  security_group_id = module.vpc.rds_sg_id
+
+  # Prod values per PETPLAT-27:
+  instance_class = "db.t4g.micro" # free tier for this learning project — real prod: db.r7g.large+ (spec cost note)
+  multi_az       = false          # single-AZ to save cost — enable Multi-AZ in real production
+  # Take a final snapshot when the instance is destroyed (data-preserving).
+  skip_final_snapshot     = false
+  backup_retention_period = 30 # 30 days for prod (PETPLAT-27)
+
+  # Explicit per technical-spec.md → RDS Database: deletion_protection is
+  # false in both envs (students destroy after each session). Set true in a
+  # real production deployment — it blocks `terraform destroy` entirely.
+  deletion_protection = false
+}

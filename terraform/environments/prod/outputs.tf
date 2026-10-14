@@ -98,3 +98,27 @@ output "kubeconfig_update_command" {
   description = "Run this command to configure kubectl for the cluster (PETPLAT-14)."
   value       = "aws eks update-kubeconfig --name ${module.eks.cluster_name} --region ${var.aws_region}"
 }
+
+# RDS outputs (PETPLAT-22/23) — connection info for K8s ConfigMaps
+# (docs/database-init.md) and the secret ARN for the External Secrets
+# Operator (PETPLAT-35).
+
+output "rds_endpoint" {
+  description = "RDS endpoint hostname (jdbc:mysql://{rds_endpoint}:3306/petclinic)."
+  value       = module.rds.endpoint
+}
+
+output "rds_port" {
+  description = "RDS listener port."
+  value       = module.rds.port
+}
+
+output "rds_instance_id" {
+  description = "RDS DB instance identifier (petclinic-prod-mysql)."
+  value       = module.rds.db_instance_id
+}
+
+output "rds_secret_arn" {
+  description = "ARN of the petclinic/prod/rds-credentials secret in Secrets Manager."
+  value       = module.rds.secret_arn
+}

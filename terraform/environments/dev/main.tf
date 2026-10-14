@@ -76,3 +76,30 @@ module "ecr" {
   force_delete = true
 }
 
+# RDS: shared MySQL 8.0 instance (petclinic-dev-mysql) for customers/visits/
+# vets, plus the master-credentials secret in Secrets Manager
+# (PETPLAT-22/23/25). technical-spec.md → RDS Database (dev column).
+module "rds" {
+  source = "../../modules/rds"
+
+  project     = var.project
+  environment = var.environment
+
+  # Network from the VPC module (PETPLAT-9): subnets for the DB subnet group
+  # and the RDS SG that admits 3306 from the EKS node SG only.
+  subnet_ids        = module.vpc.public_subnet_ids
+  security_group_id = module.vpc.rds_sg_id
+
+  # Dev values per PETPLAT-25:
+  instance_class = "db.t4g.micro" # free tier (ARM/Graviton)
+  multi_az       = false          # cost optimization for the learning project
+  # Fast teardown for dev (students destroy after each session).
+  skip_final_snapshot     = true
+  backup_retention_period = 7 # 7 days for dev (PETPLAT-25)
+
+  # Dev-only: immediate secret deletion so `terraform destroy` can re-create
+  # petclinic/dev/rds-credentials with the same name on the next session
+  # (review fix — prod keeps the 30-day default, enforced by a precondition).
+  secret_recovery_window_in_days = 0
+}
+
