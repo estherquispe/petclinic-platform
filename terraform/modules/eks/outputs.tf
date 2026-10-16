@@ -45,3 +45,8 @@ output "node_role_arn" {
   description = "IAM role ARN assumed by worker nodes."
   value       = aws_iam_role.node.arn
 }
+
+output "lb_controller_role_arn" {
+  description = "IAM role ARN for the aws-load-balancer-controller ServiceAccount in kube-system (IRSA, PETPLAT-29). Consumed by scripts/install-lb-controller.sh."
+  value       = aws_iam_role.lb_controller.arn
+}

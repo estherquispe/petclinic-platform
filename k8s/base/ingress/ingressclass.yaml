@@ -1,0 +1,16 @@
+# IngressClass "alb" — PETPLAT-29 (technical-spec.md → AWS Load Balancer Controller).
+# Maps Ingresses with ingressClassName: alb to the AWS Load Balancer Controller
+# (controller: ingress.k8s.aws/alb), installed by scripts/install-lb-controller.sh.
+#
+# IngressClass is a CLUSTER-SCOPED resource: it deliberately has no namespace.
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: alb
+  labels:
+    app.kubernetes.io/name: aws-load-balancer-controller
+    app.kubernetes.io/part-of: petclinic
+    app.kubernetes.io/managed-by: kubectl
+    app.kubernetes.io/component: infrastructure
+spec:
+  controller: ingress.k8s.aws/alb

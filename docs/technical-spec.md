@@ -1201,16 +1201,23 @@ Uses `aws_ecr_repository` with lifecycle policies, scan-on-push, and configurabl
 
 **Path:** `terraform/modules/dns/`
 
+The existing public hosted zone is looked up with a **data source** (`aws_route53_zone`), never created as a resource — Route 53 auto-creates a zone when a domain is registered, and a second zone would receive the ACM validation records in an un-delegated zone, so the certificate would never be issued (PETPLAT-28).
+
 | Input Variable | Type | Description | Default |
 |---------------|------|-------------|---------|
-| `domain_name` | string | Domain name for hosted zone | — |
+| `domain_name` | string | Apex domain of the existing hosted zone (e.g. `estherquispe.click`) | — |
+| `record_name` | string | Relative name of the app alias A record (e.g. `petclinic-dev`); null to defer | `null` |
+| `alb_dns_name` | string | ALB DNS name for the alias record — set after the Ingress-created ALB exists (PETPLAT-31) | `null` |
+| `alb_hosted_zone_id` | string | ALB canonical hosted zone ID — set together with `alb_dns_name` (PETPLAT-31) | `null` |
 | `tags` | map(string) | Additional tags | `{}` |
 
 | Output | Type | Description |
 |--------|------|-------------|
-| `zone_id` | string | Route 53 hosted zone ID |
-| `name_servers` | list(string) | NS records for delegation |
-| `certificate_arn` | string | ACM certificate ARN |
+| `zone_id` | string | Route 53 hosted zone ID (from the data source) |
+| `name_servers` | list(string) | NS records for the zone |
+| `zone_name_servers` | list(string) | Alias of `name_servers` (name required by the PETPLAT-28 acceptance criteria) |
+| `certificate_arn` | string | ARN of the issued (`aws_acm_certificate_validation`) wildcard ACM certificate |
+| `record_fqdn` | string | FQDN of the app alias A record — null while the ALB inputs are unset |
 
 ### Module: `secrets`
 

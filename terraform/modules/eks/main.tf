@@ -345,6 +345,63 @@ resource "aws_iam_role_policy_attachment" "ebs_csi" {
 }
 
 # -----------------------------------------------------------------------------
+# IRSA: AWS Load Balancer Controller role (PETPLAT-29, technical-spec.md → IRSA Roles)
+# Trust is scoped to exactly one ServiceAccount: kube-system/aws-load-balancer-controller
+# Installed by scripts/install-lb-controller.sh (Helm chart from eks.amazonaws.com/charts).
+# -----------------------------------------------------------------------------
+
+data "aws_iam_policy_document" "lb_controller_assume" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    effect  = "Allow"
+
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.eks.arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${local.oidc_provider}:sub"
+      values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${local.oidc_provider}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "lb_controller" {
+  # Name matches technical-spec.md → IRSA Roles: petclinic-{env}-lb-controller-role
+  name               = "${var.project}-${var.environment}-lb-controller-role"
+  assume_role_policy = data.aws_iam_policy_document.lb_controller_assume.json
+  tags               = local.tags
+}
+
+# Official AWS-published controller policy, vendored from the controller repo at
+# the pinned application version (v3.6.0: docs/install/iam_policy.json). Vendored
+# as a file instead of a runtime data "http" fetch so `terraform plan/apply`
+# never depends on GitHub availability. NOTE: several statements use Resource "*"
+# because AWS publishes the policy that way — the controller mutates ELB/EC2/WAF
+# resources across the account and those APIs are not scannable to a single ARN;
+# tag-conditioned (elbv2.k8s.aws/cluster) wherever the API supports condition
+# keys. There is no AWS-managed equivalent policy to attach.
+resource "aws_iam_policy" "lb_controller" {
+  name        = "${var.project}-${var.environment}-lb-controller-policy"
+  description = "AWS Load Balancer Controller policy (official, app v3.6.0) — PETPLAT-29"
+  policy      = file("${path.module}/files/aws-load-balancer-controller-iam-policy.json")
+  tags        = local.tags
+}
+
+resource "aws_iam_role_policy_attachment" "lb_controller" {
+  role       = aws_iam_role.lb_controller.name
+  policy_arn = aws_iam_policy.lb_controller.arn
+}
+
+# -----------------------------------------------------------------------------
 # EKS managed add-ons (PETPLAT-84, technical-spec.md → EKS Managed Add-ons)
 # Versions are PINNED via var.addon_versions — never "latest".
 # Upgrade procedure: docs/runbooks/eks-access-and-addons.md

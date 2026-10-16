@@ -103,3 +103,25 @@ module "rds" {
   secret_recovery_window_in_days = 0
 }
 
+# DNS: look up the EXISTING Route 53 public hosted zone for var.domain_name
+# (data source — never a resource, see ../../modules/dns), request the wildcard
+# ACM certificate for *.{domain} and validate it with DNS records, then create
+# the petclinic-dev.{domain} alias A record → ALB (PETPLAT-28/31/32).
+# technical-spec.md → DNS and Ingress.
+module "dns" {
+  source = "../../modules/dns"
+
+  domain_name = var.domain_name
+
+  # Dev record per technical-spec.md: petclinic-dev.{domain} (A, alias → ALB).
+  record_name = "${var.project}-${var.environment}"
+
+  # PETPLAT-31: the ALB is created by the AWS Load Balancer Controller watching
+  # k8s/base/ingress/ingress.yaml (outside Terraform), so its DNS name and
+  # hosted zone ID are supplied AFTER the Ingress has been applied — set both in
+  # terraform.tfvars, then re-run terraform apply. Leave null for the initial
+  # apply: the alias record is simply skipped (see the dns module's check block).
+  alb_dns_name       = var.alb_dns_name
+  alb_hosted_zone_id = var.alb_hosted_zone_id
+}
+

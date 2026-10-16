@@ -39,3 +39,21 @@ variable "api_server_public_access_cidrs" {
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
+
+variable "domain_name" {
+  description = "Apex domain of the existing Route 53 public hosted zone used for the ACM certificate and the petclinic-dev.{domain} DNS record (PETPLAT-28/32). The zone must already exist — it is looked up with a data source, not created."
+  type        = string
+  default     = "estherquispe.click"
+}
+
+variable "alb_dns_name" {
+  description = "DNS name of the internet-facing ALB created by the AWS Load Balancer Controller from k8s/base/ingress/ingress.yaml (PETPLAT-31). Leave null until the Ingress has been applied and the ALB exists, then set it in terraform.tfvars together with alb_hosted_zone_id: kubectl -n petclinic-dev get ingress api-gateway -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'"
+  type        = string
+  default     = null
+}
+
+variable "alb_hosted_zone_id" {
+  description = "Canonical hosted zone ID of that ALB (PETPLAT-31) — e.g. Z35SXDOTRQ7X7K (no /hostedzone/ prefix): aws elbv2 describe-load-balancers --names <alb-name> --query 'LoadBalancers[0].CanonicalHostedZoneId'. Leave null together with alb_dns_name until the Ingress has been applied."
+  type        = string
+  default     = null
+}

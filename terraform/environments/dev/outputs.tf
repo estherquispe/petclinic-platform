@@ -141,3 +141,34 @@ output "rds_secret_arn" {
   value       = module.rds.secret_arn
 }
 
+# DNS / TLS outputs (PETPLAT-28/31/32) — the certificate ARN is consumed by
+# k8s/base/ingress/ingress.yaml (alb.ingress.kubernetes.io/certificate-arn).
+
+output "dns_zone_id" {
+  description = "ID of the existing Route 53 public hosted zone for domain_name."
+  value       = module.dns.zone_id
+}
+
+output "dns_name_servers" {
+  description = "NS delegation records of the hosted zone (already delegated for the registered domain)."
+  value       = module.dns.name_servers
+}
+
+output "dns_certificate_arn" {
+  description = "ARN of the DNS-validated wildcard ACM certificate (*.{domain_name}). Reference this in the ALB Ingress manifest."
+  value       = module.dns.certificate_arn
+}
+
+output "dns_record_fqdn" {
+  description = "FQDN of the petclinic-dev.{domain_name} alias A record → ALB (null until alb_dns_name/alb_hosted_zone_id are set in terraform.tfvars — PETPLAT-31)."
+  value       = module.dns.record_fqdn
+}
+
+# AWS Load Balancer Controller outputs (PETPLAT-29) — the role ARN is passed to
+# scripts/install-lb-controller.sh as the ServiceAccount IRSA annotation.
+
+output "lb_controller_role_arn" {
+  description = "IAM role ARN for the kube-system/aws-load-balancer-controller ServiceAccount (IRSA)."
+  value       = module.eks.lb_controller_role_arn
+}
+
