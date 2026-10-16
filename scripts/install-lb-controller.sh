@@ -159,9 +159,28 @@ if ! kubectl apply -f "${CRD_BASE_URL}/gateway/gateway-crds.yaml"; then
 fi
 
 # --- 2) Helm repo ---------------------------------------------------------------
-echo "==> Adding/updating the eks Helm repo (https://eks.amazonaws.com/charts)"
-helm repo add eks https://eks.amazonaws.com/charts --force-update
+# The technical spec names https://eks.amazonaws.com/charts as the chart source.
+# That host is not always resolvable (DNS outages/decommission), so fall back to
+# https://aws.github.io/eks-charts — the AWS-maintained mirror documented in the
+# current EKS user guide (both serve the same eks/aws-load-balancer-controller
+# chart). `--force-update` makes re-runs idempotent.
+REPO_URL="https://eks.amazonaws.com/charts"
+REPO_URL_FALLBACK="https://aws.github.io/eks-charts"
+echo "==> Adding/updating the eks Helm repo (${REPO_URL})"
+if ! helm repo add eks "${REPO_URL}" --force-update; then
+  echo "    WARNING: ${REPO_URL} unreachable — falling back to ${REPO_URL_FALLBACK}" >&2
+  helm repo add eks "${REPO_URL_FALLBACK}" --force-update
+  REPO_URL="${REPO_URL_FALLBACK}"
+fi
 helm repo update eks
+
+# Fail early (and clearly) if the pinned chart version is not in the index —
+# better than a helm install error after the CRDs are already applied.
+if ! helm search repo "eks/${RELEASE_NAME}" --versions | awk '{print $2}' | grep -qx "${CHART_VERSION}"; then
+  echo "Error: chart version ${CHART_VERSION} not found in ${REPO_URL}." >&2
+  echo "       Available: $(helm search repo "eks/${RELEASE_NAME}" --versions | awk 'NR>1 {print $2}' | head -5 | tr '\n' ' ')" >&2
+  exit 1
+fi
 
 # --- 3) helm upgrade --install --------------------------------------------------
 # Values go into a generated file rather than --set flags: the role-arn
@@ -213,6 +232,9 @@ AWS Load Balancer Controller is installed and healthy.
 Next steps:
   1. Set the ACM certificate ARN in k8s/base/ingress/ingress.yaml:
        terraform -chdir=terraform/environments/dev output -raw dns_certificate_arn
+     (or patch the live Ingress directly after a cert rotation):
+       kubectl -n petclinic-dev annotate ingress api-gateway \\
+         alb.ingress.kubernetes.io/certificate-arn="$(terraform -chdir=terraform/environments/dev output -raw dns_certificate_arn)" --overwrite
   2. kubectl apply -f k8s/base/ingress/ingress.yaml   # controller creates the ALB
   3. PETPLAT-31 — point DNS at the ALB: get its endpoint
        kubectl -n petclinic-dev get ingress api-gateway \

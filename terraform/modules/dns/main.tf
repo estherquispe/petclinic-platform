@@ -22,7 +22,10 @@ resource "aws_acm_certificate" "this" {
   validation_method = "DNS"
 
   tags = merge(var.tags, {
-    Name = "*.${var.domain_name}" # recognizable in the ACM console
+    # ACM tag values allow only [\p{L}\p{Z}\p{N}_.:/=+\-@]* (no "*"), so the
+    # wildcard is spelled "wildcard" here — RequestCertificate rejects a
+    # literal "*." in tag values with a ValidationException.
+    Name = "wildcard.${var.domain_name}" # recognizable in the ACM console
   })
 
   # Issue the replacement before destroying the current certificate so the ALB
@@ -35,8 +38,10 @@ resource "aws_acm_certificate" "this" {
 # ACM DNS validation CNAMEs — created in the EXISTING hosted zone looked up above.
 resource "aws_route53_record" "cert_validation" {
   for_each = {
+    # Keyed by resource_record_name (collision-proof if SANs are ever added —
+    # several SANs can share one domain_name but never one record name).
     for dvo in aws_acm_certificate.this.domain_validation_options :
-    dvo.domain_name => {
+    dvo.resource_record_name => {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
       type   = dvo.resource_record_type

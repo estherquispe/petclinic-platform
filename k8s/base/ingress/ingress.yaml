@@ -12,6 +12,10 @@
 #
 # Before applying, set the certificate ARN from Terraform (PETPLAT-28/32):
 #   terraform -chdir=terraform/environments/dev output -raw dns_certificate_arn
+# If the certificate is ever rotated (create_before_destroy issues a new ARN),
+# re-sync the live Ingress without editing this file:
+#   kubectl -n petclinic-dev annotate ingress api-gateway \
+#     alb.ingress.kubernetes.io/certificate-arn="$(terraform -chdir=terraform/environments/dev output -raw dns_certificate_arn)" --overwrite
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -32,12 +36,21 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip
     # Wildcard ACM certificate created and DNS-validated by the dns module —
     # REPLACE with the value of the terraform output dns_certificate_arn.
-    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:409297710841:certificate/REPLACE-WITH-CERTIFICATE-ID"
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:409297710841:certificate/b1bdd009-b65d-4786-a22d-a582787856b9"
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
     # HTTP (80) redirects to HTTPS (443) — PETPLAT-31: "HTTP redirects to HTTPS".
     alb.ingress.kubernetes.io/ssl-redirect: "443"
     alb.ingress.kubernetes.io/healthcheck-path: /actuator/health
     alb.ingress.kubernetes.io/healthcheck-port: "8080"
+    # NOTE (security review): the ALB's security groups are created and managed
+    # by the AWS Load Balancer Controller (internet-facing 80/443 + a managed
+    # target SG). The Terraform ALB SG (module.vpc.alb_sg_id) is therefore NOT
+    # attached to this ALB and is not its perimeter. Attaching it via
+    # alb.ingress.kubernetes.io/security-groups would add nothing — SG egress
+    # and ingress rules across multiple attached SGs are unioned (OR), so the
+    # controller-managed allow rules always win. If Terraform-owned SGs are
+    # ever required, also set manage-security-groups: "false" and open the
+    # pod-8080 path on the node SG explicitly.
 spec:
   ingressClassName: alb
   rules:

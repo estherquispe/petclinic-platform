@@ -43,7 +43,7 @@ output "rds_sg_id" {
 }
 
 output "alb_sg_id" {
-  description = "ALB security group ID."
+  description = "ID of the Terraform-managed ALB security group. NOTE: the live ALB created by the AWS Load Balancer Controller uses controller-managed security groups instead (see k8s/base/ingress/ingress.yaml) — this SG is the Terraform-side baseline perimeter per the technical spec, not the live ALB's SG."
   value       = module.vpc.alb_sg_id
 }
 
