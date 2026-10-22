@@ -36,23 +36,26 @@ resource "aws_acm_certificate" "this" {
 }
 
 # ACM DNS validation CNAMEs — created in the EXISTING hosted zone looked up above.
+#
+# NOTE: aws_acm_certificate.this.domain_validation_options is a set of objects
+# whose attribute values are unknown until the certificate is issued (apply
+# time). Terraform forbids using unknown values as for_each keys, so we use a
+# static key and reference the validation options directly in each argument.
+# A wildcard ACM certificate (e.g. *.{domain}) has exactly one domain validation
+# option, so a single record is created. If multiple validation options ever
+# appear, use aws_acm_certificate_validation with multiple record_fqdns
+# instead of creating multiple aws_route53_record resources here.
 resource "aws_route53_record" "cert_validation" {
   for_each = {
-    # Keyed by resource_record_name (collision-proof if SANs are ever added —
-    # several SANs can share one domain_name but never one record name).
-    for dvo in aws_acm_certificate.this.domain_validation_options :
-    dvo.resource_record_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
+    # Static key — required because domain_validation_options is unknown at plan time.
+    validation = true
   }
 
   zone_id = data.aws_route53_zone.this.zone_id
-  name    = each.value.name
-  type    = each.value.type
+  name    = one(aws_acm_certificate.this.domain_validation_options).resource_record_name
+  type    = one(aws_acm_certificate.this.domain_validation_options).resource_record_type
   ttl     = 60
-  records = [each.value.record]
+  records = [one(aws_acm_certificate.this.domain_validation_options).resource_record_value]
 
   # The validation record is re-created whenever the certificate rotates.
   allow_overwrite = true
