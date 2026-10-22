@@ -39,3 +39,9 @@ variable "api_server_public_access_cidrs" {
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
+
+variable "openai_api_key" {
+  description = "OpenAI API key value for the GenAI service. Stored as the plaintext value of the petclinic/{env}/openai-api-key secret. Provide via -var or terraform.tfvars; never hardcode."
+  type        = string
+  sensitive   = true
+}

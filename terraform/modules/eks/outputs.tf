@@ -50,3 +50,8 @@ output "lb_controller_role_arn" {
   description = "IAM role ARN for the aws-load-balancer-controller ServiceAccount in kube-system (IRSA, PETPLAT-29). Consumed by scripts/install-lb-controller.sh."
   value       = aws_iam_role.lb_controller.arn
 }
+
+output "eso_role_arn" {
+  description = "IAM role ARN for the External Secrets Operator ServiceAccount (IRSA, PETPLAT-37). Used in ESO ServiceAccount annotation."
+  value       = aws_iam_role.eso.arn
+}

@@ -402,6 +402,58 @@ resource "aws_iam_role_policy_attachment" "lb_controller" {
 }
 
 # -----------------------------------------------------------------------------
+# ESO IRSA Role (PETPLAT-37: IRSA role for External Secrets Operator)
+# -----------------------------------------------------------------------------
+
+resource "aws_iam_role" "eso" {
+  name = "${var.project}-${var.environment}-eso-role"
+
+  assume_role_policy = data.aws_iam_policy_document.eso_assume.json
+}
+
+data "aws_iam_policy_document" "eso_assume" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.eks.arn]
+    }
+
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+  }
+}
+
+resource "aws_iam_role_policy" "eso-inline" {
+  role = aws_iam_role.eso.name
+
+  policy = data.aws_iam_policy_document.eso_access.json
+}
+
+data "aws_iam_policy_document" "eso_access" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:DescribeSecret"
+    ]
+
+    resources = [
+      "arn:aws:secretsmanager:${var.aws_region}:*:secret:petclinic/*"
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = ["kms:Decrypt"]
+
+    resources = ["*"]
+  }
+}
+
+# -----------------------------------------------------------------------------
 # EKS managed add-ons (PETPLAT-84, technical-spec.md → EKS Managed Add-ons)
 # Versions are PINNED via var.addon_versions — never "latest".
 # Upgrade procedure: docs/runbooks/eks-access-and-addons.md

@@ -146,3 +146,8 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "aws_region" {
+  description = "AWS region where the EKS cluster is deployed."
+  type        = string
+}

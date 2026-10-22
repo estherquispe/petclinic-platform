@@ -27,6 +27,7 @@ module "eks" {
   project         = var.project
   environment     = var.environment
   cluster_version = "1.36"
+  aws_region      = var.aws_region
 
   # Network + baseline security groups from the VPC module (PETPLAT-9).
   subnet_ids    = module.vpc.public_subnet_ids
@@ -123,5 +124,16 @@ module "dns" {
   # apply: the alias record is simply skipped (see the dns module's check block).
   alb_dns_name       = var.alb_dns_name
   alb_hosted_zone_id = var.alb_hosted_zone_id
+}
+
+# Secrets Manager (PETPLAT-33): non-RDS application secrets
+module "secrets" {
+  source = "../../modules/secrets"
+
+  project     = var.project
+  environment = var.environment
+
+  # OpenAI API key — provided via -var or terraform.tfvars; never hardcoded
+  openai_api_key = var.openai_api_key
 }
 

@@ -28,6 +28,7 @@ module "eks" {
   project         = var.project
   environment     = var.environment
   cluster_version = "1.36"
+  aws_region      = var.aws_region
 
   # Network + baseline security groups from the VPC module (PETPLAT-10).
   subnet_ids    = module.vpc.public_subnet_ids
@@ -76,4 +77,15 @@ module "rds" {
   # false in both envs (students destroy after each session). Set true in a
   # real production deployment — it blocks `terraform destroy` entirely.
   deletion_protection = false
+}
+
+# Secrets Manager (PETPLAT-33): non-RDS application secrets
+module "secrets" {
+  source = "../../modules/secrets"
+
+  project     = var.project
+  environment = var.environment
+
+  # OpenAI API key — provided via -var or terraform.tfvars; never hardcoded
+  openai_api_key = var.openai_api_key
 }
