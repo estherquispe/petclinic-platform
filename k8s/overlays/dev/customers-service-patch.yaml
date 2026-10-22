@@ -1,0 +1,8 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customers-service
+  labels:
+    app.kubernetes.io/name: customers-service
+spec:
+  replicas: 1

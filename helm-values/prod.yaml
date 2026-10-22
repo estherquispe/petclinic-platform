@@ -1,0 +1,14 @@
+image:
+  registry: 533267262133.dkr.ecr.us-east-1.amazonaws.com/petclinic-prod
+  tag: "={{ .Chart.AppVersion }}"
+replicaCount: 2
+springProfiles: {}
+service:
+  port: 8080
+hpa:
+  enabled: true
+  min: 2
+  max: 6
+  cpuUtilization: 70
+podDisruptionBudget:
+  enabled: true

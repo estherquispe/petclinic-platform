@@ -1,0 +1,8 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-server
+  labels:
+    app.kubernetes.io/name: config-server
+spec:
+  replicas: 1

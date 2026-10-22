@@ -1,0 +1,21 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vets-service-hpa
+  labels:
+    app.kubernetes.io/name: vets-service-hpa
+    app.kubernetes.io/part-of: petclinic
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vets-service
+  min: 2
+  max: 4
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: UtilizationAverage
+          averageUtilization: 70

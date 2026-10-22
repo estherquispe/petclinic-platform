@@ -1,0 +1,23 @@
+app:
+  component: config-server
+image:
+  name: config-server
+  tag: ={{ .Chart.AppVersion }}
+initContainers: []
+notes:
+  content: Post-installation notes for config-server
+  enabled: true
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+service:
+  port: 8888
+spring:
+  startupProbe:
+    failureThreshold: 30
+    initialDelaySeconds: 0
+springProfiles: docker

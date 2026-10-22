@@ -1,0 +1,29 @@
+app:
+  component: discovery-server
+image:
+  name: discovery-server
+  tag: ={{ .Chart.AppVersion }}
+initContainers:
+- command:
+  - sh
+  - -c
+  - until wget -qO- http://config-server:8888/actuator/health; do sleep 5; done
+  image: busybox:1.36
+  name: wait-for-config-server
+notes:
+  content: Post-installation notes for discovery-server
+  enabled: true
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+service:
+  port: 8761
+spring:
+  startupProbe:
+    failureThreshold: 30
+    initialDelaySeconds: 0
+springProfiles: docker

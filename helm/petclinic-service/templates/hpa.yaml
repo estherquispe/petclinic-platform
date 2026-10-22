@@ -1,0 +1,20 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "petclinic.fullname" . }}-hpa
+  labels:
+    {{- include "petclinic.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "petclinic.fullname" . }}
+  min: {{ .Values.hpa.min | default 1 }}
+  max: {{ .Values.hpa.max | default 3 }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: UtilizationAverage
+          averageUtilization: {{ .Values.hpa.cpuUtilization | default 70 }}

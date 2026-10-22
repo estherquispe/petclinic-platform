@@ -1,0 +1,8 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vets-service
+  labels:
+    app.kubernetes.io/name: vets-service
+spec:
+  replicas: 2

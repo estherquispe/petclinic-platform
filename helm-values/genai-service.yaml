@@ -1,0 +1,49 @@
+app:
+  component: genai-service
+env:
+- name: SPRING_PROFILES_ACTIVE
+  value: docker,production
+- name: CONFIG_SERVER_URL
+  value: http://config-server:8888
+- name: OPENAI_API_KEY
+  valueFrom:
+    secretKeyRef:
+      key: openai-api-key
+      name: petclinic-secrets
+image:
+  name: genai-service
+  tag: ={{ .Chart.AppVersion }}
+initContainers:
+- command:
+  - sh
+  - -c
+  - until wget -qO- http://config-server:8888/actuator/health; do sleep 5; done
+  image: busybox:1.36
+  name: wait-for-config-server
+- command:
+  - sh
+  - -c
+  - until wget -qO- http://discovery-server:8761/actuator/health; do sleep 5; done
+  image: busybox:1.36
+  name: wait-for-discovery-server
+notes:
+  content: Post-installation notes for genai-service
+  enabled: true
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+secrets:
+- key: api_key
+  name: openai-api-key
+  secretName: petclinic-secrets
+service:
+  port: 8084
+spring:
+  startupProbe:
+    failureThreshold: 30
+    initialDelaySeconds: 0
+springProfiles: docker,production

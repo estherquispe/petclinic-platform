@@ -1,0 +1,3 @@
+{{- if .Values.notes.enabled }}
+{{- .Values.notes.content | nindent 2 }}
+{{- end }}
