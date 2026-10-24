@@ -172,3 +172,11 @@ output "lb_controller_role_arn" {
   value       = module.eks.lb_controller_role_arn
 }
 
+# ESO IRSA role output (PETPLAT-37) — consumed by scripts/install-eso.sh to
+# annotate the external-secrets-sa ServiceAccount (k8s/base/external-secrets/serviceaccount.yaml).
+
+output "eso_role_arn" {
+  description = "IAM role ARN for the External Secrets Operator ServiceAccount (IRSA, PETPLAT-37). Used in ESO ServiceAccount annotation."
+  value       = module.eks.eso_role_arn
+}
+

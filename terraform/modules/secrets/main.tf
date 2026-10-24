@@ -54,10 +54,11 @@ resource "aws_secretsmanager_secret_version" "config_server_git_password" {
   secret_string = var.config_server_git_password
 }
 
- locals {
+locals {
   common_tags = {
     Project     = var.project
     Environment = var.environment
+    ManagedBy   = "terraform"
   }
- }
+}
 

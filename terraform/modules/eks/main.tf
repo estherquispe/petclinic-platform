@@ -24,6 +24,10 @@ locals {
   oidc_provider   = replace(aws_iam_openid_connect_provider.eks.url, "https://", "")
 }
 
+# AWS account ID — used to scope IAM policy resources to this account (least
+# privilege, avoids wildcards in account-ID position).
+data "aws_caller_identity" "current" {}
+
 # -----------------------------------------------------------------------------
 # Cluster IAM role (technical-spec.md → Cluster IAM Role)
 # -----------------------------------------------------------------------------
@@ -421,6 +425,19 @@ data "aws_iam_policy_document" "eso_assume" {
     }
 
     actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    # Trust scoped to exactly one ServiceAccount: external-secrets/external-secrets-sa
+    condition {
+      test     = "StringEquals"
+      variable = "${local.oidc_provider}:sub"
+      values   = ["system:serviceaccount:external-secrets:external-secrets-sa"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${local.oidc_provider}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
   }
 }
 
@@ -440,7 +457,7 @@ data "aws_iam_policy_document" "eso_access" {
     ]
 
     resources = [
-      "arn:aws:secretsmanager:${var.aws_region}:*:secret:petclinic/*"
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:petclinic/*"
     ]
   }
 
@@ -449,7 +466,10 @@ data "aws_iam_policy_document" "eso_access" {
 
     actions = ["kms:Decrypt"]
 
-    resources = ["*"]
+    # Encryption context: Secrets Manager secrets use the default AWS-managed
+    # key; grant Decrypt only on the cluster-scoped KMS key that protects
+    # envelope-encrypted Kubernetes secrets (narrower than "*").
+    resources = [aws_kms_key.cluster_secrets.arn]
   }
 }
 

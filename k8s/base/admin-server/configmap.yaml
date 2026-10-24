@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: admin
 data:
-  application.yml:
+  application.yml: |
     spring:
       application:
         name: admin-server

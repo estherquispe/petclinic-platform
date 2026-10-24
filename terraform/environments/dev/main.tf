@@ -137,3 +137,9 @@ module "secrets" {
   openai_api_key = var.openai_api_key
 }
 
+# IRSA role for External Secrets Operator (PETPLAT-37) is created by the EKS
+# module (terraform/modules/eks/) as petclinic-{env}-eso-role with a
+# service-account-scoped OIDC trust policy. Its ARN is exported via the eks
+# module's eso_role_arn output and used to annotate the external-secrets-sa
+# ServiceAccount (k8s/base/external-secrets/serviceaccount.yaml).
+

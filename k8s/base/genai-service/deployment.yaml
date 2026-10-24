@@ -27,15 +27,16 @@ spec:
         fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
-          rules: []
+          
       containers:
         - name: genai-service
-          image: "genai-service:latest"
+          image: "409297710841.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/genai-service:v1.0.0"
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            readOnlyRootFilesystem: false  # Spring Boot needs /tmp for file uploads and caching
           ports:
             - containerPort: 8084
               protocol: TCP
@@ -86,10 +87,8 @@ spec:
         - name: wait-for-config-server
           image: busybox:1.36
           command: ['sh', '-c', 'until wget -qO- http://config-server:8888/actuator/health; do sleep 5; done']
-          timeout: 180
           restartPolicy: Never
         - name: wait-for-discovery-server
           image: busybox:1.36
           command: ['sh', '-c', 'until wget -qO- http://discovery-server:8761/actuator/health; do sleep 5; done']
-          timeout: 180
           restartPolicy: Never
