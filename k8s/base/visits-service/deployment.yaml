@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: visits-service
+  namespace: petclinic-dev
   labels:
     app.kubernetes.io/name: visits-service
     app.kubernetes.io/part-of: petclinic
