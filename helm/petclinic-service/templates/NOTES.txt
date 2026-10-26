@@ -1,3 +1,18 @@
 {{- if .Values.notes.enabled }}
-{{- .Values.notes.content | nindent 2 }}
+Thank you for installing {{ include "petclinic.fullname" . }}.
+
+The following resources were created:
+- Deployment:    {{ include "petclinic.fullname" . }}
+- Service:       {{ include "petclinic.fullname" . }} (port {{ .Values.service.port }})
+- ConfigMap:     {{ include "petclinic.fullname" . }}
+- ServiceAccount: {{ include "petclinic.serviceAccountName" . }}
+{{- if .Values.hpa.enabled }}
+- HorizontalPodAutoscaler: {{ include "petclinic.fullname" . }}-hpa
+{{- end }}
+{{- if .Values.podDisruptionBudget.enabled }}
+- PodDisruptionBudget: {{ include "petclinic.fullname" . }}-pdb
+{{- end }}
+
+Init containers enforce the startup dependency chain (config-server, then
+discovery-server) before the application container starts.
 {{- end }}

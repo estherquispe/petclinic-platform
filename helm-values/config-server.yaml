@@ -1,23 +1,38 @@
+nameOverride: config-server
 app:
-  component: config-server
+  component: server
 image:
   name: config-server
-  tag: ={{ .Chart.AppVersion }}
+  tag: "v1.0.0"
 initContainers: []
-notes:
-  content: Post-installation notes for config-server
-  enabled: true
+replicaCount: 2
 resources:
-  limits:
-    cpu: 500m
-    memory: 512Mi
   requests:
     cpu: 100m
     memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
 service:
   port: 8888
-spring:
-  startupProbe:
-    failureThreshold: 30
-    initialDelaySeconds: 0
+probes:
+  readiness:
+    path: /actuator/health
+  liveness:
+    path: /actuator/health
 springProfiles: docker
+env:
+  - name: SPRING_APPLICATION_NAME
+    value: config-server
+secrets: []
+hpa:
+  enabled: true
+  min: 2
+  max: 3
+  cpuUtilization: 70
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+notes:
+  content: Post-installation notes for config-server
+  enabled: true

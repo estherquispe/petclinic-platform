@@ -5,11 +5,11 @@ metadata:
   labels:
     {{- include "petclinic.labels" . | nindent 4 }}
 spec:
-  type: ClusterIP
+  type: {{ .Values.service.type }}
   selector:
     app.kubernetes.io/name: {{ include "petclinic.fullname" . }}
   ports:
     - name: http
       protocol: TCP
       port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort | default .Values.service.port }}

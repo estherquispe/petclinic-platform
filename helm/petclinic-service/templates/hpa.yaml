@@ -1,3 +1,4 @@
+{{- if .Values.hpa.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -9,12 +10,13 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ include "petclinic.fullname" . }}
-  min: {{ .Values.hpa.min | default 1 }}
-  max: {{ .Values.hpa.max | default 3 }}
+  minReplicas: {{ .Values.hpa.min }}
+  maxReplicas: {{ .Values.hpa.max }}
   metrics:
     - type: Resource
       resource:
         name: cpu
         target:
           type: UtilizationAverage
-          averageUtilization: {{ .Values.hpa.cpuUtilization | default 70 }}
+          averageUtilization: {{ .Values.hpa.cpuUtilization }}
+{{- end }}

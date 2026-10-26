@@ -1,9 +1,10 @@
+# Dev environment overrides.
+# Applied after per-service values. Dev runs 1 replica per service with HPA
+# and PDB disabled.
 image:
   registry: 533267262133.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev
-  tag: "={{ .Chart.AppVersion }}"
 replicaCount: 1
-springProfiles: {}
-service:
-  port: 8080
 hpa:
+  enabled: false
+podDisruptionBudget:
   enabled: false

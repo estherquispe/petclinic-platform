@@ -1,29 +1,40 @@
+nameOverride: discovery-server
 app:
-  component: discovery-server
+  component: server
 image:
   name: discovery-server
-  tag: ={{ .Chart.AppVersion }}
+  tag: "v1.0.0"
 initContainers:
-- command:
-  - sh
-  - -c
-  - until wget -qO- http://config-server:8888/actuator/health; do sleep 5; done
-  image: busybox:1.36
-  name: wait-for-config-server
-notes:
-  content: Post-installation notes for discovery-server
-  enabled: true
+  - name: wait-for-config-server
+    image: busybox:1.36
+    command:
+      - sh
+      - -c
+      - until wget -qO- http://config-server:8888/actuator/health; do sleep 5; done
+    restartPolicy: Never
+replicaCount: 2
 resources:
-  limits:
-    cpu: 500m
-    memory: 512Mi
   requests:
     cpu: 100m
     memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
 service:
   port: 8761
-spring:
-  startupProbe:
-    failureThreshold: 30
-    initialDelaySeconds: 0
 springProfiles: docker
+env:
+  - name: SPRING_APPLICATION_NAME
+    value: discovery-server
+secrets: []
+hpa:
+  enabled: true
+  min: 2
+  max: 3
+  cpuUtilization: 70
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+notes:
+  content: Post-installation notes for discovery-server
+  enabled: true

@@ -1,35 +1,39 @@
+nameOverride: admin-server
 app:
-  component: admin-server
+  component: admin
 image:
   name: admin-server
-  tag: ={{ .Chart.AppVersion }}
+  tag: "v1.0.0"
 initContainers:
-- command:
-  - sh
-  - -c
-  - until wget -qO- http://config-server:8888/actuator/health; do sleep 5; done
-  image: busybox:1.36
-  name: wait-for-config-server
-- command:
-  - sh
-  - -c
-  - until wget -qO- http://discovery-server:8761/actuator/health; do sleep 5; done
-  image: busybox:1.36
-  name: wait-for-discovery-server
-notes:
-  content: Post-installation notes for admin-server
-  enabled: true
+  - name: wait-for-config-server
+    image: busybox:1.36
+    command:
+      - sh
+      - -c
+      - until wget -qO- http://config-server:8888/actuator/health; do sleep 5; done
+    restartPolicy: Never
+  - name: wait-for-discovery-server
+    image: busybox:1.36
+    command:
+      - sh
+      - -c
+      - until wget -qO- http://discovery-server:8761/actuator/health; do sleep 5; done
+    restartPolicy: Never
+replicaCount: 1
 resources:
-  limits:
-    cpu: 500m
-    memory: 512Mi
   requests:
     cpu: 100m
     memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
 service:
   port: 9090
-spring:
-  startupProbe:
-    failureThreshold: 30
-    initialDelaySeconds: 0
 springProfiles: docker
+env:
+  - name: SPRING_APPLICATION_NAME
+    value: admin-server
+secrets: []
+notes:
+  content: Post-installation notes for admin-server
+  enabled: true

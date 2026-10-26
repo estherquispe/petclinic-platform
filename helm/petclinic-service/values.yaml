@@ -1,0 +1,109 @@
+# Default values for the petclinic-service generic Helm chart.
+# Values hierarchy (last wins):
+#   1. helm/petclinic-service/values.yaml        (defaults below)
+#   2. helm-values/{service}.yaml                (per-service config)
+#   3. helm-values/{env}.yaml                    (per-environment overrides)
+#
+# Deploy example:
+#   helm upgrade --install <service> helm/petclinic-service/ \
+#     -n petclinic-dev \
+#     -f helm-values/<service>.yaml \
+#     -f helm-values/dev.yaml \
+#     --set image.tag=<sha>
+
+# Override the release-generated resource name. Set per-service so rendered
+# resource names match the base K8s manifests (e.g. config-server, not
+# petclinic-config-server).
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+image:
+  registry: ""        # set per-environment (dev.yaml / prod.yaml)
+  name: ""            # set per-service
+  tag: "latest"       # overridden by CI/CD via --set image.tag=<sha>
+  pullPolicy: IfNotPresent
+
+service:
+  port: 8080          # overridden per-service
+  targetPort: ""      # defaults to service.port when empty
+  type: ClusterIP
+
+app:
+  component: backend
+
+springProfiles: docker
+
+# Extra static environment variables (name/value) injected into the container.
+env: []
+# Secret-backed environment variables (name/secretName/key) injected as
+# valueFrom.secretKeyRef entries. Secret names/keys must match k8s/base/*.
+secrets: []
+# Init containers used to enforce the service startup dependency chain.
+initContainers: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+probes:
+  readiness:
+    path: /actuator/health/readiness
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  liveness:
+    path: /actuator/health/liveness
+    initialDelaySeconds: 60
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3
+  startup:
+    path: /actuator/health
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+
+# Optional RollingUpdate strategy (e.g. api-gateway).
+strategy: {}
+
+# HorizontalPodAutoscaler - rendered only when enabled.
+hpa:
+  enabled: false
+  min: 1
+  max: 4
+  cpuUtilization: 70
+
+# PodDisruptionBudget - rendered only when enabled.
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+
+serviceAccount:
+  name: ""        # defaults to the release resource name
+  annotations: {} # IRSA annotation, e.g. eks.amazonaws.com/role-arn
+
+notes:
+  enabled: false
+  content: ""

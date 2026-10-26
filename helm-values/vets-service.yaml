@@ -1,55 +1,55 @@
+nameOverride: vets-service
 app:
-  component: vets-service
-env:
-- name: SPRING_DATASOURCE_URL
-  value: jdbc:mysql://petclinic-db:3306/petclinic
-- name: SPRING_DATASOURCE_USERNAME
-  valueFrom:
-    secretKeyRef:
-      key: username
-      name: petclinic-db-credentials
-- name: SPRING_DATASOURCE_PASSWORD
-  valueFrom:
-    secretKeyRef:
-      key: password
-      name: petclinic-db-credentials
+  component: service
 image:
   name: vets-service
-  tag: ={{ .Chart.AppVersion }}
+  tag: "v1.0.0"
 initContainers:
-- command:
-  - sh
-  - -c
-  - until wget -qO- http://config-server:8888/actuator/health; do sleep 5; done
-  image: busybox:1.36
-  name: wait-for-config-server
-- command:
-  - sh
-  - -c
-  - until wget -qO- http://discovery-server:8761/actuator/health; do sleep 5; done
-  image: busybox:1.36
-  name: wait-for-discovery-server
-notes:
-  content: Post-installation notes for vets-service
-  enabled: true
+  - name: wait-for-config-server
+    image: busybox:1.36
+    command:
+      - sh
+      - -c
+      - until wget -qO- http://config-server:8888/actuator/health; do sleep 5; done
+    restartPolicy: Never
+  - name: wait-for-discovery-server
+    image: busybox:1.36
+    command:
+      - sh
+      - -c
+      - until wget -qO- http://discovery-server:8761/actuator/health; do sleep 5; done
+    restartPolicy: Never
+replicaCount: 2
 resources:
-  limits:
-    cpu: 500m
-    memory: 512Mi
   requests:
     cpu: 100m
     memory: 128Mi
-secrets:
-- key: username
-  name: SPRING_DATASOURCE_USERNAME
-  secretName: petclinic-db-credentials
-- key: password
-  name: SPRING_DATASOURCE_PASSWORD
-  secretName: petclinic-db-credentials
+  limits:
+    cpu: 500m
+    memory: 512Mi
 service:
   port: 8083
-spring:
-  startupProbe:
-    failureThreshold: 30
-    initialDelaySeconds: 0
 springProfiles: docker,mysql
+env:
+  - name: SPRING_APPLICATION_NAME
+    value: vets-service
+  - name: SPRING_DATASOURCE_URL
+    value: jdbc:mysql://petclinic-db:3306/petclinic
+secrets:
+  - name: SPRING_DATASOURCE_USERNAME
+    secretName: petclinic-db-credentials
+    key: username
+  - name: SPRING_DATASOURCE_PASSWORD
+    secretName: petclinic-db-credentials
+    key: password
+hpa:
+  enabled: true
+  min: 2
+  max: 4
+  cpuUtilization: 70
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+notes:
+  content: Post-installation notes for vets-service
+  enabled: true
