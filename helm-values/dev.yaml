@@ -2,7 +2,9 @@
 # Applied after per-service values. Dev runs 1 replica per service with HPA
 # and PDB disabled.
 image:
-  registry: 533267262133.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev
+  registry: 409297710841.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev
+  pullSecrets:
+    - name: ecr-pull-secret
 replicaCount: 1
 hpa:
   enabled: false

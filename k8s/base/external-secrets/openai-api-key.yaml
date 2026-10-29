@@ -2,7 +2,7 @@ apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: openai-api-key
-  namespace: external-secrets
+  namespace: petclinic-dev
   labels:
     app.kubernetes.io/name: openai-api-key
     app.kubernetes.io/part-of: petclinic
@@ -13,17 +13,19 @@ spec:
     name: aws-secrets-manager
     kind: ClusterSecretStore
   target:
-    name: openai-api-key
+    name: petclinic-secrets
     # NOTE (v1 API): target.namespace no longer exists in external-secrets.io/v1.
     # The Kubernetes Secret is created in the same namespace as this ExternalSecret
-    # (external-secrets). To materialize it in petclinic-{env}, deploy this
-    # ExternalSecret in that namespace instead.
+    # (petclinic-dev), where the genai-service consumes it.
+    # Name must match secretKeyRef.name in genai-service deployment
+    # (k8s/base/genai-service/deployment.yaml) and secretName in
+    # helm-values/genai-service.yaml.
     creationPolicy: Owner
   data:
     - secretKey: OPENAI_API_KEY
       remoteRef:
-        # petclinic/{env}/openai-api-key is a PLAINTEXT secret (see
+        # petclinic/dev/openai-api-key is a PLAINTEXT secret (see
         # technical-spec.md → Secrets Management): the whole SecretString is
         # used as the value, so no remoteRef.property is set.
-        key: petclinic/{env}/openai-api-key
+        key: petclinic/dev/openai-api-key
   refreshInterval: 1h

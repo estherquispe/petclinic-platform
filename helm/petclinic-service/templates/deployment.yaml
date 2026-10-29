@@ -19,6 +19,10 @@ spec:
         {{- include "petclinic.labels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "petclinic.serviceAccountName" . }}
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       securityContext:
         {{- toYaml .Values.securityContext | nindent 8 }}
       {{- with .Values.initContainers }}

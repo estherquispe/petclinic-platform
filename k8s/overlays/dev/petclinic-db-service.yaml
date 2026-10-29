@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-db
+  namespace: petclinic-dev
+  labels:
+    app.kubernetes.io/name: petclinic-db
+    app.kubernetes.io/part-of: petclinic
+    app.kubernetes.io/managed-by: kubectl
+    app.kubernetes.io/component: infrastructure
+spec:
+  type: ExternalName
+  # Dev RDS endpoint from `terraform -chdir=terraform/environments/dev output rds_endpoint`.
+  # Env-specific — prod needs its own overlay file with `petclinic-prod-mysql...` endpoint.
+  externalName: petclinic-dev-mysql.cihddm3idxfx.us-east-1.rds.amazonaws.com
+  ports:
+    - port: 3306
+      targetPort: 3306
+      protocol: TCP
+      name: mysql
+  # headless-less external name: no clusterIP; DNS resolves directly to the RDS hostname.
+  # The RDS security group admits 3306 from the EKS node security group only
+  # (docs/database-init.md), which pods inherit when running on EKS nodes.

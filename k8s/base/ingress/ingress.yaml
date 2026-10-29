@@ -36,7 +36,7 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip
     # Wildcard ACM certificate created and DNS-validated by the dns module —
     # REPLACE with the value of the terraform output dns_certificate_arn.
-    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:409297710841:certificate/96ac0ee1-3d26-445c-88ba-b4be6684148a"
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:409297710841:certificate/88d60f2d-d401-451d-b0d3-20ae117d1db5"
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
     # HTTP (80) redirects to HTTPS (443) — PETPLAT-31: "HTTP redirects to HTTPS".
     alb.ingress.kubernetes.io/ssl-redirect: "443"

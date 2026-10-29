@@ -5,3 +5,5 @@
 # defaults; e.g. admin-server has no HPA/PDB, genai-service has no PDB).
 image:
   registry: 533267262133.dkr.ecr.us-east-1.amazonaws.com/petclinic-prod
+  pullSecrets:
+    - name: ecr-pull-secret

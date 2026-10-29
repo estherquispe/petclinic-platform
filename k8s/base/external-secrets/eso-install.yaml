@@ -11,7 +11,8 @@ metadata:
     #   ROLE_ARN=$(terraform output -raw eso_role_arn)
     #   kubectl annotate sa external-secrets-sa -n external-secrets \
     #     eks.amazonaws.com/role-arn="${ROLE_ARN}" --overwrite
-    eks.amazonaws.com/role-arn: REPLACE_WITH_ESO_IRSA_ROLE_ARN
+    # Value is set after `terraform apply` from the eso_role_arn output
+    # (role: petclinic-{env}-eso-role) — environment-specific, not hardcoded here.
   labels:
     app.kubernetes.io/name: external-secrets
     app.kubernetes.io/part-of: petclinic

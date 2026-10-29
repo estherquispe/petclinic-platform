@@ -75,7 +75,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: petclinic-secrets
-                  key: openai-api-key
+                  key: OPENAI_API_KEY
           resources:
             requests:
               memory: "128Mi"

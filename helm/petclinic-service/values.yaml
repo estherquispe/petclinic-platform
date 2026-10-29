@@ -24,6 +24,7 @@ image:
   name: ""            # set per-service
   tag: "latest"       # overridden by CI/CD via --set image.tag=<sha>
   pullPolicy: IfNotPresent
+  pullSecrets: []     # e.g. [{name: ecr-pull-secret}] for private ECR across accounts
 
 service:
   port: 8080          # overridden per-service

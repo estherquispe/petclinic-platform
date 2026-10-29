@@ -38,7 +38,7 @@ module "eks" {
   node_instance_types = ["t4g.small"]
   node_min_size       = 2
   node_max_size       = 4
-  node_desired_size   = 2
+  node_desired_size   = 3
 
   # PETPLAT-14: deployer gets explicit cluster-admin access entry.
   # Falls back to the deploying caller; set eks_admin_principal_arns to use a

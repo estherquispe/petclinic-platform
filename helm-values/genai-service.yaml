@@ -36,7 +36,7 @@ env:
 secrets:
   - name: OPENAI_API_KEY
     secretName: petclinic-secrets
-    key: openai-api-key
+    key: OPENAI_API_KEY
 hpa:
   enabled: true
   min: 1

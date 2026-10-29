@@ -75,12 +75,12 @@ spec:
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: petclinic-db-credentials
+                  name: rds-credentials
                   key: username
             - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: petclinic-db-credentials
+                  name: rds-credentials
                   key: password
           resources:
             requests:

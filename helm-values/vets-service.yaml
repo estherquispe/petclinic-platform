@@ -37,10 +37,10 @@ env:
     value: jdbc:mysql://petclinic-db:3306/petclinic
 secrets:
   - name: SPRING_DATASOURCE_USERNAME
-    secretName: petclinic-db-credentials
+    secretName: rds-credentials
     key: username
   - name: SPRING_DATASOURCE_PASSWORD
-    secretName: petclinic-db-credentials
+    secretName: rds-credentials
     key: password
 hpa:
   enabled: true
