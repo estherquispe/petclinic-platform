@@ -1,0 +1,86 @@
+name: Update Image Tags
+
+# Triggered by a repository_dispatch event (type: app-image-built) sent from
+# the application repo's build-push workflow after images are pushed to ECR.
+# Lives in the platform repo — CI never deploys; ArgoCD handles CD.
+#
+# Payload (from build-push.yml):
+#   {
+#     "sha": "<commit SHA pushed to ECR>",
+#     "services": "<space-separated list of changed services>"
+#   }
+#
+# Stories: PETPLAT-50, PETPLAT-87
+# Technical spec: docs/technical-spec.md#cicd-pipeline
+
+on:
+  repository_dispatch:
+    types: [app-image-built]
+
+permissions:
+  contents: write
+
+jobs:
+  update-tags:
+    name: Update Helm image tags
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout platform repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Install yq
+        run: |
+          YQ_VERSION=$(curl -sL https://api.github.com/repos/mikefarah/yq/releases/latest | jq -r .tag_name)
+          curl -sL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" -o /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
+          yq --version
+
+      - name: Configure git for commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Extract repository_dispatch payload
+        id: payload
+        env:
+          SHA: ${{ github.event.client_payload.sha }}
+          SERVICES: ${{ github.event.client_payload.services }}
+        run: |
+          # Normalize: accept space-separated list or JSON array string
+          SERVICES_CLEAN="${SERVICES//[\[\]\",]/}"
+          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "services=${SERVICES_CLEAN}" >> "$GITHUB_OUTPUT"
+          echo "Services to update: ${SERVICES_CLEAN}"
+
+      - name: Update image.tag in helm-values files
+        env:
+          SHA: ${{ steps.payload.outputs.sha }}
+          SERVICES: ${{ steps.payload.outputs.services }}
+        run: |
+          set -e
+          for service in ${SERVICES}; do
+            values_file="helm-values/${service}.yaml"
+            if [[ ! -f "$values_file" ]]; then
+              echo "ERROR: $values_file not found for service ${service}" >&2
+              exit 1
+            fi
+            yq -i --arg sha "$SHA" '.image.tag = $sha' "$values_file"
+            echo "Updated ${values_file} image.tag -> ${SHA}"
+          done
+
+      - name: Commit and push updated image tags
+        env:
+          SHA: ${{ steps.payload.outputs.sha }}
+          SERVICES: ${{ steps.payload.outputs.services }}
+        run: |
+          if git diff --quiet -- helm-values/; then
+            echo "No changes to helm-values/ — nothing to commit"
+            exit 0
+          fi
+          git add helm-values/
+          git commit -m "ci: update image tags to ${SHA} (${SERVICES})"
+          git push
+          echo "Pushed commit ci: update image tags to ${SHA} (${SERVICES})"
