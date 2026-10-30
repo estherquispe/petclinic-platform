@@ -82,7 +82,7 @@ resource "aws_iam_role" "github_actions" {
     ]
   })
 
-  description = "OIDC role for GitHub Actions CI — ECR push only; assumed via sts:AssumeRoleWithWebIdentity (no long-lived keys)"
+  description = "OIDC role for GitHub Actions CI - ECR push only; assumed via sts:AssumeRoleWithWebIdentity (no long-lived keys)"
 
   tags = local.tags
 }
@@ -113,10 +113,10 @@ resource "aws_iam_role_policy" "ecr_push" {
           "ecr:InitiateLayerUpload",
           "ecr:UploadLayerPart",
           "ecr:CompleteLayerUpload",
-          "ecr:PutImage",
+          "ecr:PutImage"
         ]
         Resource = var.repository_arns
-      },
+      }
     ]
   })
 }

@@ -42,9 +42,8 @@ variable "role_name" {
 }
 
 variable "repository_arns" {
-  description = "ARNs of the ECR repositories the role may push images to (ecr:BatchCheckLayerAvailability, layer upload actions, ecr:PutImage). GetAuthorizationToken is account-scoped (Resource: *)."
+  description = "ARNs of the ECR repositories the role may push images to (ecr:BatchCheckLayerAvailability, layer upload actions, ecr:PutImage). GetAuthorizationToken is account-scoped (Resource: *). THIS VARIABLE IS REQUIRED - must be provided with actual ECR repository ARNs. Do NOT leave as default[].\n\n  # To auto-populate for petclinic-dev in us-east-1:\n  #   terraform apply -var='repository_arns=[\n  #     \"arn:aws:ecr:us-east-1:409297710841:repository/petclinic-dev/config-server\",\n  #     ... (all 8 service ARNs)\n  #   ]'\n\n  # Example construction (run once to get current ECR repo ARNs):\n  #   aws ecr describe-repositories --region us-east-1 --query 'repositories[?contains(name, `petclinic-dev`)].arn'\n  #   # Then paste the results here."
   type        = list(string)
-  default     = []
 }
 
 variable "tags" {
