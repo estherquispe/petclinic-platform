@@ -3,7 +3,7 @@ app:
   component: service
 image:
   name: genai-service
-  tag: "v1.0.0"
+  tag: "v1.0.1"
 initContainers:
   - name: wait-for-config-server
     image: busybox:1.36
