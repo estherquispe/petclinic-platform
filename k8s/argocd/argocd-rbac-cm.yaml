@@ -32,7 +32,6 @@ data:
 
     # Developer: sync only dev-environment applications (names ending in -dev)
     p, role:developer, applications, sync, dev-*, allow
-    p, role:developer, applications, action, resource:action, dev-*, allow
 
     # Developer: NO prod sync — explicitly deny sync on prod applications
     p, role:developer, applications, sync, prod-*, deny
