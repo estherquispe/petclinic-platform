@@ -3,8 +3,9 @@
 # and PDB disabled.
 image:
   registry: 409297710841.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev
-  pullSecrets:
-    - name: ecr-pull-secret
+  # No pull secret: EKS nodes pull from same-account ECR via the node IAM role
+  # (AmazonEC2ContainerRegistryReadOnly).
+  pullSecrets: []
 replicaCount: 1
 hpa:
   enabled: false
