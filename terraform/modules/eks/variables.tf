@@ -68,13 +68,13 @@ variable "node_min_size" {
 variable "node_max_size" {
   description = "Maximum number of worker nodes."
   type        = number
-  default     = 4
+  default     = 8
 }
 
 variable "node_desired_size" {
   description = "Desired number of worker nodes."
   type        = number
-  default     = 2
+  default     = 8 # Change to 8 when you deploy the observability stack
 }
 
 variable "node_disk_size" {
