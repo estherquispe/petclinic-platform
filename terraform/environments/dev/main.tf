@@ -38,7 +38,7 @@ module "eks" {
   node_instance_types = ["t4g.small"]
   node_min_size       = 2
   node_max_size       = 4
-  node_desired_size   = 3
+  node_desired_size   = 4 # was 3; each t4g.small caps at 11 pods (VPC CNI ENI limit)
 
   # PETPLAT-14: deployer gets explicit cluster-admin access entry.
   # Falls back to the deploying caller; set eks_admin_principal_arns to use a
@@ -135,6 +135,9 @@ module "secrets" {
 
   # OpenAI API key — provided via -var or terraform.tfvars; never hardcoded
   openai_api_key = var.openai_api_key
+
+  # Dev only: allow immediate re-creation of the grafana-admin secret after destroy.
+  secret_recovery_window_in_days = 0
 }
 
 # IRSA role for External Secrets Operator (PETPLAT-37) is created by the EKS

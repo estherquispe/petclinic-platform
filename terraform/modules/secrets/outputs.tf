@@ -16,3 +16,9 @@ output "config_server_git_password_secret_arn" {
   sensitive   = true
 }
 
+
+output "grafana_admin_secret_arn" {
+  description = "ARN of the petclinic/{env}/grafana-admin secret (JSON with username/password)."
+  value       = aws_secretsmanager_secret.grafana_admin.arn
+  sensitive   = true
+}

@@ -1,0 +1,75 @@
+# PETPLAT-60: Zipkin in the `tracing` namespace (services send to http://zipkin.tracing:9411)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zipkin
+  namespace: tracing
+  labels:
+    app.kubernetes.io/name: zipkin
+    app.kubernetes.io/part-of: petclinic
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: observability
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: zipkin
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: zipkin
+        app.kubernetes.io/part-of: petclinic
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: zipkin
+          image: openzipkin/zipkin:3.4
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - name: http
+              containerPort: 9411
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9411
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9411
+            initialDelaySeconds: 40
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin
+  namespace: tracing
+  labels:
+    app.kubernetes.io/name: zipkin
+    app.kubernetes.io/part-of: petclinic
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: observability
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: zipkin
+  ports:
+    - name: http
+      protocol: TCP
+      port: 9411
+      targetPort: 9411
